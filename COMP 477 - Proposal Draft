@@ -1,0 +1,33 @@
+COMP 477 - Proposal Draft
+=========================
+
+Topic:
+-----
+
+Use kinect fusion to scan a room, from which the location of the kinect can then be determined.
+
+
+Objectives:
+----------
+
+1)	Learn kinect fusion API/SDK
+
+2)	Research ICT Algorithm
+
+3)	Reconstruct one object
+
+4)	Reconstruct a room
+
+5)	Determine location based on reconstruction
+
+
+Timeline:
+--------
+
+Week of Sept 22nd:
+	-	Play around with kinect SDK, do basic tutorials
+	-	Confirm objectives with Prof. Popa and David
+	-	Complete proposal
+	-	Complete more detailed timeline
+	-	Setup github
+			Amit: amit@birkas.ca
