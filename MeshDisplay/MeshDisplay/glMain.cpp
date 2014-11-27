@@ -13,13 +13,13 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <vector>
 #include "defMesh.h"
 using namespace std;
 
 
-//Create Mesh
-const int NUM_MESHES = 1;
-DefMesh mesh[NUM_MESHES] = { DefMesh("./model/cheb.ply") };
+//Create Mesh Vector
+vector<DefMesh*> meshes;
 
 //Switches
 int meshModel=0;
@@ -434,8 +434,8 @@ void display()
 
     glPushMatrix();
 
-    for (int i = 0; i < NUM_MESHES; i++)
-        mesh[i].glDraw(meshModel);
+    for (int i = 0; i < meshes.size(); i++)
+        meshes[i]->glDraw(meshModel);
     
     glPopMatrix();
     
@@ -444,6 +444,8 @@ void display()
 
 int main(int argc, char **argv)
 {
+    meshes.push_back(new DefMesh("./model/box.ply"));
+    meshes.push_back(new DefMesh("./model/franks.ply"));
 
     glutInit(&argc, argv);
     //Print contex info

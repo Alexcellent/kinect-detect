@@ -27,10 +27,10 @@ public:
     PLYmodel() {}
     ~PLYmodel()
     {
-        free(Faces_Triangles);
-        free(Faces_Quads);
-        free(Vertex_Buffer);
-        free(Normals);
+        if (Faces_Triangles != NULL) free(Faces_Triangles);
+        if (Faces_Quads     != NULL) free(Faces_Quads);
+        if (Vertex_Buffer   != NULL) free(Vertex_Buffer);
+        if (Normals         != NULL) free(Normals);
     }
     
     int PLYmodel::Load(char *filename);

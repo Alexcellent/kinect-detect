@@ -1,5 +1,6 @@
 
 #include "plyModel.h"
+#include <iostream>
 
 float* PLYmodel::calculateNormal(float *coord1, float *coord2, float *coord3)
 {
@@ -37,6 +38,8 @@ int PLYmodel::Load(char* filename)
     this->TotalConnectedTriangles = 0;
     this->TotalConnectedQuads = 0;
     this->TotalConnectedPoints = 0;
+
+    std::cout << "Loading: " << filename << '\n';
 
     char* pch = strstr(filename, ".ply");
 
