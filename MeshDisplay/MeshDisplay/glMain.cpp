@@ -536,7 +536,7 @@ int main(int argc, char **argv)
 {
     meshes.push_back(new DefMesh("./model/box.ply"));
     meshes.push_back(new DefMesh("./model/futuramacota.ply"));
-    meshes.push_back(new DefMesh("./model/franks.ply"));
+    //meshes.push_back(new DefMesh("./model/franks.ply"));
 
     glutInit(&argc, argv);
     //Print contex info

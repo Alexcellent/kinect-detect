@@ -46,7 +46,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Text.txt">
+    <None Include="ToDo.txt">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
