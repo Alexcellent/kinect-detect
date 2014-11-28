@@ -20,9 +20,10 @@ using namespace std;
 
 //Create Mesh Vector
 vector<DefMesh*> meshes;
+int selectedMesh = -1; // ID fo selected mesh
 
 //Switches
-int meshModel=0;
+int meshModel = 0;
 
 //Window parameters
 int width = 1024;
@@ -55,11 +56,6 @@ double _dragPosZ = 0.0;
 /* Mode Definition */
 typedef enum {EDIT, ANIM} Mode;
 Mode mode = EDIT;
-
-// Animation info
-bool      continuousAnim = false;
-int       speed = 1;
-const int MAX_SPEED = 5;
 
 double vlen(double x, double y, double z)
 {
@@ -170,8 +166,6 @@ void invertMatrix(const GLdouble * m, GLdouble * out)
 #undef MAT
 }
 
-
-
 void pos(double *px, double *py, double *pz, const int x, const int y,
 	 const int *viewport)
 {
@@ -187,6 +181,38 @@ void pos(double *px, double *py, double *pz, const int x, const int y,
     *px = _left + (*px) * (_right - _left);
     *py = _top + (*py) * (_bottom - _top);
     *pz = _zNear;
+}
+
+// screenToWorld and worldToScreen were based off of similar functions
+// available in our comp371 assignment codebases.
+
+
+void screenToWorld(GLdouble* x, GLdouble* y, GLdouble* z){
+
+    // Get viewport, projection and modelview
+    GLint    viewport[4] = { 0, 0, 1, 1 };
+    GLdouble modelview[16];
+    GLdouble projection[16];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+    gluUnProject(*x, *y, *z, modelview, projection, viewport, x, y, z);
+}
+
+void worldToScreen(GLdouble* x, GLdouble* y, GLdouble* z){
+    
+    // Get viewport, projection and modelview
+    GLint    viewport[4] = { 0, 0, 1, 1 };
+    GLdouble modelview[16];
+    GLdouble projection[16];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+    gluProject(*x, *y, *z, modelview, projection, viewport, x, y, z);
 }
 
 void getMatrix()
@@ -242,7 +268,6 @@ void init()
      glMultMatrixd(_matrix);
      getMatrix();
      glPopMatrix();
-
 }
 
 void changeSize(int w, int h)
@@ -281,6 +306,63 @@ void timerFunction(int value)
     glutPostRedisplay();
 }
 
+void checkHoveringStatus(int x, int y)
+{
+    int hoveredID = -1;
+    float minDistance = FLT_MAX;
+    for (unsigned i = 0; i < meshes.size(); i++)
+    {
+        // Reset status
+        meshes[i]->status = IDLE;
+        
+        // Get screen 'radius' for bbox (max of w/h/d for box)
+        GLdouble center_x = meshes[i]->bbox.xCen, 
+                 center_y = meshes[i]->bbox.yCen,
+                 center_z = meshes[i]->bbox.zCen,
+                 max_x    = meshes[i]->bbox.xMax,
+                 max_y    = meshes[i]->bbox.yMax,
+                 max_z    = meshes[i]->bbox.zMax;
+        worldToScreen(&center_x, &center_y, &center_z);
+        worldToScreen(&max_x, &max_y, &max_z);
+
+        float screenRadius = sqrt((max_x - center_x)*(max_x - center_x) + 
+                                  (max_y - center_y)*(max_y - center_y) +
+                                  (max_z - center_z)*(max_z - center_z));
+
+        // Get distance of mouse from mesh center
+        float distance = sqrt((x - center_x)*(x - center_x) + 
+                              (y - center_y)*(y - center_y));
+        if (distance > screenRadius) continue;
+        if (center_z < minDistance)
+        {
+            minDistance = center_z;
+            hoveredID = i;
+        }
+
+    }
+    if (hoveredID != -1) meshes[hoveredID]->status = HOVERED;
+}
+
+void selectMesh()
+{
+    for (unsigned i = 0; i < meshes.size(); i++){
+        if (meshes[i]->status == HOVERED){
+            meshes[i]->status = SELECTED;
+            selectedMesh = i;
+        }
+    }
+}
+
+void releaseMesh()
+{
+    if (selectedMesh > -1)
+    {
+        meshes[selectedMesh]->status = IDLE;
+        selectedMesh = -1;
+    }
+    
+}
+
 void handleKeyPress(unsigned char key, int x, int y)
 { 
     switch(key)
@@ -295,10 +377,6 @@ void handleKeyPress(unsigned char key, int x, int y)
     }
 }
 
-// screenToWorld and worldToScreen were based off of similar functions
-// available in my comp371 assignment codebases.
-
-
 void mouseEvent(int button, int state, int x, int y)
 {
     int viewport[4];
@@ -306,48 +384,58 @@ void mouseEvent(int button, int state, int x, int y)
     _mouseX = x;
     _mouseY = y;
 
+    // BUTTON RELEASE
     if (state == GLUT_UP)
-	switch (button) {
-    case GLUT_LEFT_BUTTON:
-        // TODO Release a mesh
-            _mouseLeft =false;
+    {
+        switch (button) {
+        case GLUT_LEFT_BUTTON:
+            meshes[0]->status = IDLE;
+            releaseMesh();
+            checkHoveringStatus(x, y);
+            _mouseLeft = false;
             break;
-	case GLUT_MIDDLE_BUTTON:
-	    _mouseMiddle = false;
-	    break;
-	case GLUT_RIGHT_BUTTON:
-	    _mouseRight = false;
-	    break;
-    } else
-	switch (button) {
-	case GLUT_LEFT_BUTTON:
-        // TODO Pick a mesh
-        _mouseLeft = true;
-        break;
-	case GLUT_MIDDLE_BUTTON:
-	    _mouseMiddle = true;
-	    break;
-	case GLUT_RIGHT_BUTTON:
-	    _mouseRight = true;
-	    break;
-    case 4:         //Zoomout
-        glLoadIdentity();
-        glTranslatef(0,0,-0.1);
-        glMultMatrixd(_matrix);
-        getMatrix();
-        glutPostRedisplay();
-        break;
-    case 3:         //Zoomin
-        glLoadIdentity();
-        glTranslatef(0,0,0.1);
-        glMultMatrixd(_matrix);
-        getMatrix();
-        glutPostRedisplay();
-        break;
-    default:
-        break;
-        //std::cout<<button<<std::endl;
-	}
+        case GLUT_MIDDLE_BUTTON:
+            _mouseMiddle = false;
+            break;
+        case GLUT_RIGHT_BUTTON:
+            _mouseRight = false;
+            break;
+        }
+    }
+    // BUTTON PRESS
+    else
+    {
+        switch (button) {
+        case GLUT_LEFT_BUTTON:
+            // TODO Pick a mesh
+            selectMesh();
+            _mouseLeft = true;
+            break;
+        case GLUT_MIDDLE_BUTTON:
+            _mouseMiddle = true;
+            break;
+        case GLUT_RIGHT_BUTTON:
+            _mouseRight = true;
+            break;
+        case 4:         //Zoomout
+            glLoadIdentity();
+            glTranslatef(0, 0, -0.1);
+            glMultMatrixd(_matrix);
+            getMatrix();
+            glutPostRedisplay();
+            break;
+        case 3:         //Zoomin
+            glLoadIdentity();
+            glTranslatef(0, 0, 0.1);
+            glMultMatrixd(_matrix);
+            getMatrix();
+            glutPostRedisplay();
+            break;
+        default:
+            break;
+            //std::cout<<button<<std::endl;
+        }
+    }
 
     glGetIntegerv(GL_VIEWPORT, viewport);
     pos(&_dragPosX, &_dragPosY, &_dragPosZ, x, y, viewport);
@@ -355,8 +443,9 @@ void mouseEvent(int button, int state, int x, int y)
 
 void mousePassiveFunc(int x, int y)
 {
-    //myDefMesh.mySkeleton.checkHoveringStatus(x, y);
+    checkHoveringStatus(x, y);
 }
+
 void mouseMoveEvent(int x, int y)
 {
     const int dx = x - _mouseX;
@@ -424,6 +513,7 @@ void mouseMoveEvent(int x, int y)
     }
    
 }
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -435,7 +525,7 @@ void display()
     glPushMatrix();
 
     for (int i = 0; i < meshes.size(); i++)
-        meshes[i]->glDraw(meshModel);
+        meshes[i]->glDraw();
     
     glPopMatrix();
     
@@ -445,6 +535,7 @@ void display()
 int main(int argc, char **argv)
 {
     meshes.push_back(new DefMesh("./model/box.ply"));
+    meshes.push_back(new DefMesh("./model/futuramacota.ply"));
     meshes.push_back(new DefMesh("./model/franks.ply"));
 
     glutInit(&argc, argv);
@@ -452,7 +543,7 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);	//double buffer
     glutInitWindowSize(width, height);
     glutInitWindowPosition(0, 0);
-    glutCreateWindow("COMP447");
+    glutCreateWindow("Mesh Merger");
     glutDisplayFunc(display);
     glutReshapeFunc(changeSize);
     glutTimerFunc(10, timerFunction, 1);

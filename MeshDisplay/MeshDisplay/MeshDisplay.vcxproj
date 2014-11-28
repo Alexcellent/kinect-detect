@@ -80,15 +80,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bbox.cpp" />
     <ClCompile Include="defMesh.cpp" />
     <ClCompile Include="glm.cpp" />
     <ClCompile Include="glMain.cpp" />
     <ClCompile Include="plyModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bbox.h" />
     <ClInclude Include="defMesh.h" />
     <ClInclude Include="glm.h" />
     <ClInclude Include="plyModel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Text.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

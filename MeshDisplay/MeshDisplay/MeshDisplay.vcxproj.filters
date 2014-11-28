@@ -27,6 +27,9 @@
     <ClCompile Include="plyModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bbox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defMesh.h">
@@ -38,5 +41,13 @@
     <ClInclude Include="plyModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Text.txt">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

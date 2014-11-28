@@ -19,6 +19,12 @@
 #include <cmath>
 #include <string>
 
+typedef enum ClickStatus
+{
+    IDLE,
+    HOVERED,
+    SELECTED
+} Status;
 
 class PLYmodel
 {
@@ -34,7 +40,7 @@ public:
     }
     
     int PLYmodel::Load(char *filename);
-    void PLYmodel::Draw();
+    void PLYmodel::Draw(Status clickStatus);
     float* PLYmodel::calculateNormal(float *coord1, float *coord2, float *coord3);
     
 

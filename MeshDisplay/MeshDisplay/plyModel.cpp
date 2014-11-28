@@ -186,8 +186,20 @@ int PLYmodel::Load(char* filename)
     return 0;
 }
 
-void PLYmodel::Draw()
+void PLYmodel::Draw(Status clickStatus)
 {
+    switch(clickStatus){
+    case IDLE:
+        glColor3f(0.5, 0.5, 0.5);
+        break;
+    case HOVERED:
+        glColor3f(0.5, 0.6, 0.5);
+        break;
+    case SELECTED:
+        glColor3f(0.0, 0.5, 0.0);
+        break;
+    }
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_FLOAT, 0, Faces_Triangles);
