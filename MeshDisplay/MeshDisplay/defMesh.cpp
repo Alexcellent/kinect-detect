@@ -48,31 +48,31 @@ DefMesh::DefMesh(std::string filename) : status(IDLE)
    
 }
 
-void DefMesh::updateMesh(){
-
-    for (int i = 0; i < pmodel->TotalConnectedPoints; i++){
-
-        // Simplify getting coordinate of vertex
-        // Note: vertices start at i = 1
-        int x = (i + 1) * 3;
-        int y = (i + 1) * 3 + 1;
-        int z = (i + 1) * 3 + 2;
-
-        // Zero out current vertex
-        pmodel->Vertex_Buffer[x] = 0.0;
-        pmodel->Vertex_Buffer[y] = 0.0;
-        pmodel->Vertex_Buffer[z] = 0.0;
-        float initPos[3] = { pmodel->Init_Vertex_Buffer[x], pmodel->Init_Vertex_Buffer[y], pmodel->Init_Vertex_Buffer[z] };
-
-        // Update vertex positions
-        float newPos[3];
-        multv(t_matrix, initPos, newPos);
-        pmodel->Vertex_Buffer[x] += newPos[0];
-        pmodel->Vertex_Buffer[y] += newPos[1];
-        pmodel->Vertex_Buffer[z] += newPos[2];
-
-    }
-}
+//void DefMesh::updateMesh(){
+//
+//    for (int i = 0; i < pmodel->TotalConnectedPoints; i++){
+//
+//        // Simplify getting coordinate of vertex
+//        // Note: vertices start at i = 1
+//        int x = (i + 1) * 3;
+//        int y = (i + 1) * 3 + 1;
+//        int z = (i + 1) * 3 + 2;
+//
+//        // Zero out current vertex
+//        pmodel->Vertex_Buffer[x] = 0.0;
+//        pmodel->Vertex_Buffer[y] = 0.0;
+//        pmodel->Vertex_Buffer[z] = 0.0;
+//        float initPos[3] = { pmodel->Init_Vertex_Buffer[x], pmodel->Init_Vertex_Buffer[y], pmodel->Init_Vertex_Buffer[z] };
+//
+//        // Update vertex positions
+//        float newPos[3];
+//        multv(t_matrix, initPos, newPos);
+//        pmodel->Vertex_Buffer[x] += newPos[0];
+//        pmodel->Vertex_Buffer[y] += newPos[1];
+//        pmodel->Vertex_Buffer[z] += newPos[2];
+//
+//    }
+//}
 
 void DefMesh::glDraw(int meshModel)
 {

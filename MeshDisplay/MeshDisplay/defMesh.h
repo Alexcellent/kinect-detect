@@ -26,7 +26,7 @@ public:
         delete pmodel; 
     }
     
-    void updateMesh();
+    //void updateMesh();
     void glDraw(int meshModel);
 
 };

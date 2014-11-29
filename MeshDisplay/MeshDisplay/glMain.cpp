@@ -184,7 +184,6 @@ void pos(float *px, float *py, float *pz, const int x, const int y,
 // screenToWorld and worldToScreen were based off of similar functions
 // available in our comp371 assignment codebases.
 
-
 void screenToWorld(GLdouble* x, GLdouble* y, GLdouble* z){
 
     // Get viewport, projection and modelview
@@ -550,7 +549,6 @@ void mouseMoveEvent(int x, int y)
         glPopMatrix();
 
     } else if (_translate) {
-        // TODO Could use some tweaking
         GLdouble p[3] = { prev_x, prev_y, _zNear };
         GLdouble q[3] = { curr_x, curr_y, _zNear };
         screenToWorld(&p[0], &p[1], &p[2]);
