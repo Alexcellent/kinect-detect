@@ -52,7 +52,8 @@ int PLYmodel::Load(char* filename)
 
         try
         {
-            Vertex_Buffer = (float*)malloc(ftell(file));
+            Vertex_Buffer      = (float*)malloc(ftell(file));
+            Init_Vertex_Buffer = (float*)malloc(ftell(file));
         }
         catch (char*)
         {
@@ -115,6 +116,9 @@ int PLYmodel::Load(char* filename)
                 fgets(buffer, 300, file);
 
                 sscanf(buffer, "%f %f %f", &Vertex_Buffer[i], &Vertex_Buffer[i + 1], &Vertex_Buffer[i + 2]);
+                Init_Vertex_Buffer[i]     = Vertex_Buffer[i];
+                Init_Vertex_Buffer[i + 1] = Vertex_Buffer[i + 1];
+                Init_Vertex_Buffer[i + 2] = Vertex_Buffer[i + 2];
                 i += 3;
             }
 
@@ -185,27 +189,3 @@ int PLYmodel::Load(char* filename)
     }
     return 0;
 }
-
-void PLYmodel::Draw(Status clickStatus)
-{
-    switch(clickStatus){
-    case IDLE:
-        glColor3f(0.5, 0.5, 0.5);
-        break;
-    case HOVERED:
-        glColor3f(0.5, 0.6, 0.5);
-        break;
-    case SELECTED:
-        glColor3f(0.0, 0.5, 0.0);
-        break;
-    }
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, Faces_Triangles);
-    glNormalPointer(GL_FLOAT, 0, Normals);
-    glDrawArrays(GL_TRIANGLES, 0, TotalConnectedTriangles);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-}
-

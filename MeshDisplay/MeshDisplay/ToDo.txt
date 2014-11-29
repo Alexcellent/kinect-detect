@@ -3,18 +3,21 @@ COMP 477 Project - OpenGL Tool TODO
 
 1 - KINECT:
 -----------------------------------
+<<<<<<<<<<<<<<DONE>>>>>>>>>>>>>>
     -   Scan with kinect to obtain depth maps
     -   Test these scans are correct by visualizing data (glpoints)
     -   Switch on and off
-
+<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 
 2 - OpenGL tool to load objects
 -----------------------------------
+<<<<<<<<<<<<<<DONE>>>>>>>>>>>>>>
     -   Load depth map into opengl
     -   Some form of interface to rotate meshes
     -   'Pick' a mesh to rotate/translate it into a new position
         -   Track these transformations in a matrix
+<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 
 3 - Movement from kinect
 -----------------------------------
-    -   Search how to get kinect depth mesh c++ opengl
+    -   Search how to get kinect depth mesh c++ opengl for localization info

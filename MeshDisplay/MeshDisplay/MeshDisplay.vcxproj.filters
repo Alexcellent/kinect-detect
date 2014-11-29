@@ -30,6 +30,9 @@
     <ClCompile Include="bbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="simpleMath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defMesh.h">
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bbox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="simpleMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

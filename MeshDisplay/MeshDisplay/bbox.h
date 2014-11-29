@@ -1,10 +1,9 @@
 #ifndef BBOX_H
 #define BBOX_H
 
-#include "GL/glut.h"
+#include <GL/glut.h>
+#include "simpleMath.h"
 #include "plyModel.h"
-
-#define M_PI 3.14159265
 
 // Mesh bounding box used for mesh selection
 struct BBox{

@@ -45,7 +45,7 @@ float BBox::getRadius()
 }
 void BBox::getScreenSphere(GLdouble* x, GLdouble* y, GLdouble* z, GLdouble* radius)
 {
-    GLint viewport[4];
+    GLint    viewport[4];
     GLdouble modelview[16];
     GLdouble projection[16];
     GLdouble winX, winY, winZ;
@@ -96,7 +96,7 @@ void BBox::draw(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glColor4f(0.8, 0.8, 0.8, 0.4); // should be completely invisible
+    glColor4f(0.8, 0.8, 0.8, 0.4);
 
     glTranslated(xCen, yCen, zCen);
     glutSolidSphere(getRadius(), 30, 30);

@@ -5,11 +5,11 @@
 // Expectations of Originality
 //
 // ACKNOWLEDGEMENTS:
-// OpenGL aspects of this project use the codebase from our assignments
-// as a foundation, on which we built our needed functionality.
+// OpenGL aspects of this project use the codebase from both our 371 and 477
+// assignments as a foundation, on which we built our needed functionality.
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "GL/glut.h"
+#include <GL/glut.h>
 #include <iostream>
 #include <cmath>
 #include <cstring>
@@ -39,28 +39,26 @@ double fovy = 45.0;
 double prev_z = 0;
 
 //Model matrices
-double _matrix[16];
+double  _matrix[16];
 double _matrixI[16];
 
-/* Mouse Interface  */
-int _mouseX = 0;		/* mouse control variables */
-int _mouseY = 0;
+// Mouse interface
+int  _mouseX = 0;
+int  _mouseY = 0;
 bool _mouseLeft = false;
 bool _mouseMiddle = false;
 bool _mouseRight = false;
 
-double _dragPosX = 0.0;
-double _dragPosY = 0.0;
-double _dragPosZ = 0.0;
+float _dragPosX = 0.0;
+float _dragPosY = 0.0;
+float _dragPosZ = 0.0;
 
-/* Mode Definition */
-typedef enum {EDIT, ANIM} Mode;
-Mode mode = EDIT;
+// Transformation states
+bool _translate = false;
+bool _rotate    = false;
 
-double vlen(double x, double y, double z)
-{
-    return sqrt(x * x + y * y + z * z);
-}
+float prev_x(0), prev_y(0);
+float curr_x(0), curr_y(0);
 
 void invertMatrix(const GLdouble * m, GLdouble * out)
 {
@@ -166,7 +164,7 @@ void invertMatrix(const GLdouble * m, GLdouble * out)
 #undef MAT
 }
 
-void pos(double *px, double *py, double *pz, const int x, const int y,
+void pos(float *px, float *py, float *pz, const int x, const int y,
 	 const int *viewport)
 {
     /*
@@ -175,8 +173,8 @@ void pos(double *px, double *py, double *pz, const int x, const int y,
        co-ordinates
      */
 
-    *px = (double) (x - viewport[0]) / (double) (viewport[2]);
-    *py = (double) (y - viewport[1]) / (double) (viewport[3]);
+    *px = (float)(x - viewport[0]) / (float)(viewport[2]);
+    *py = (float)(y - viewport[1]) / (float)(viewport[3]);
 
     *px = _left + (*px) * (_right - _left);
     *py = _top + (*py) * (_bottom - _top);
@@ -306,6 +304,28 @@ void timerFunction(int value)
     glutPostRedisplay();
 }
 
+float* getArcballVector(float x, float y) 
+{
+    // From COMP371 Assignment 1
+    float* av = new float[3];
+    av[0] =  (x / ((float)width )) * 2 - 1.0;
+    av[1] =  (y / ((float)height)) * 2 - 1.0;
+    av[2] =  0.0;
+
+    av[1] = -av[1];
+
+    float op2 = av[0] * av[0] + av[1] * av[1];
+    if (op2 <= 1.0) {
+        av[2] = sqrt(1.0 - op2);
+    }
+    else {
+        av = normalize(av);
+    }
+    return av;
+}
+
+
+// NOT USED //////////////////////////
 void checkHoveringStatus(int x, int y)
 {
     int hoveredID = -1;
@@ -343,37 +363,55 @@ void checkHoveringStatus(int x, int y)
     if (hoveredID != -1) meshes[hoveredID]->status = HOVERED;
 }
 
-void selectMesh()
+void selectMesh(int i)
 {
-    for (unsigned i = 0; i < meshes.size(); i++){
-        if (meshes[i]->status == HOVERED){
-            meshes[i]->status = SELECTED;
-            selectedMesh = i;
-        }
-    }
+    if (selectedMesh == -1)
+        return;
+
+    meshes[i]->status = SELECTED;
 }
 
-void releaseMesh()
+void releaseMesh(int i)
 {
-    if (selectedMesh > -1)
-    {
-        meshes[selectedMesh]->status = IDLE;
-        selectedMesh = -1;
-    }
-    
+    if (selectedMesh == -1) 
+        return;
+
+    meshes[selectedMesh]->status = IDLE;
 }
 
 void handleKeyPress(unsigned char key, int x, int y)
 { 
     switch(key)
     {
-        case 'g':
-            meshModel = (meshModel+1)%3; 
-            break;
+    case 'q': // PREV
+        releaseMesh(selectedMesh);
         
-        case 'q':
-        case  27:
-            exit(0);
+        if (selectedMesh <= 0)
+            selectedMesh = meshes.size() - 1;
+        else
+            selectedMesh--;
+        
+        selectMesh(selectedMesh);
+        break;
+
+    case 'w': // RELEASE ALL
+        if (selectedMesh != -1)
+            releaseMesh(selectedMesh);
+        selectedMesh = -1;
+        break;
+
+    case 'e': // NEXT
+        releaseMesh(selectedMesh);
+        if(selectedMesh == -1)
+            selectedMesh = 0;
+        else
+            selectedMesh = (selectedMesh + 1) % meshes.size();
+        
+        selectMesh(selectedMesh);
+        break;
+    
+    case  27:
+        exit(0);
     }
 }
 
@@ -383,21 +421,23 @@ void mouseEvent(int button, int state, int x, int y)
 
     _mouseX = x;
     _mouseY = y;
+   
+    prev_x = curr_x = x;
+    prev_y = curr_y = y;
 
     // BUTTON RELEASE
     if (state == GLUT_UP)
     {
         switch (button) {
         case GLUT_LEFT_BUTTON:
-            meshes[0]->status = IDLE;
-            releaseMesh();
-            checkHoveringStatus(x, y);
+            _rotate = false;
             _mouseLeft = false;
             break;
         case GLUT_MIDDLE_BUTTON:
             _mouseMiddle = false;
             break;
         case GLUT_RIGHT_BUTTON:
+            _translate = false;
             _mouseRight = false;
             break;
         }
@@ -407,15 +447,19 @@ void mouseEvent(int button, int state, int x, int y)
     {
         switch (button) {
         case GLUT_LEFT_BUTTON:
-            // TODO Pick a mesh
-            selectMesh();
             _mouseLeft = true;
+            if (selectedMesh > -1)
+                _rotate = true;
+               
             break;
         case GLUT_MIDDLE_BUTTON:
             _mouseMiddle = true;
             break;
         case GLUT_RIGHT_BUTTON:
             _mouseRight = true;
+            if (selectedMesh > -1)
+                _translate = true;
+
             break;
         case 4:         //Zoomout
             glLoadIdentity();
@@ -433,7 +477,6 @@ void mouseEvent(int button, int state, int x, int y)
             break;
         default:
             break;
-            //std::cout<<button<<std::endl;
         }
     }
 
@@ -441,15 +484,13 @@ void mouseEvent(int button, int state, int x, int y)
     pos(&_dragPosX, &_dragPosY, &_dragPosZ, x, y, viewport);
 }
 
-void mousePassiveFunc(int x, int y)
-{
-    checkHoveringStatus(x, y);
-}
-
 void mouseMoveEvent(int x, int y)
 {
     const int dx = x - _mouseX;
     const int dy = y - _mouseY;
+
+    curr_x = x;
+    curr_y = y;
 
     bool changed = false;
 
@@ -469,7 +510,60 @@ void mouseMoveEvent(int x, int y)
         glMultMatrixd(_matrix);
 
         changed = true;
-    } else if (_mouseLeft) {
+    } else if (_rotate) { 
+        // Get vectors before and after mouse move
+        float* a = getArcballVector(prev_x, prev_y);
+        float* b = getArcballVector(curr_x, curr_y);
+
+        float  angle = acos(min((float)1.0, dot3(a, b))) *180.0 / (M_PI);
+        float* axis  = cross3(a, b);
+
+        // ARCBALL ROTATION
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glTranslatef(meshes[selectedMesh]->bbox.xCen,
+                     meshes[selectedMesh]->bbox.yCen,
+                     meshes[selectedMesh]->bbox.zCen);
+        glRotatef(2 * angle, axis[0], axis[1], axis[2]);
+        glTranslatef(-meshes[selectedMesh]->bbox.xCen, 
+                     -meshes[selectedMesh]->bbox.yCen, 
+                     -meshes[selectedMesh]->bbox.zCen);
+        glMultMatrixf(meshes[selectedMesh]->t_matrix);
+
+        
+        GLdouble M[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, M);
+        float r[16];
+        for (int i = 0; i < 16; ++i)
+            meshes[selectedMesh]->t_matrix[i] = M[i];
+
+        //mult(meshes[selectedMesh]->t_matrix, r, meshes[selectedMesh]->t_matrix);
+        glPopMatrix();
+
+    } else if (_translate) {
+        // TODO Could use some tweaking
+        GLdouble p[3] = { prev_x, prev_y, _zNear };
+        GLdouble q[3] = { curr_x, curr_y, _zNear };
+        screenToWorld(&p[0], &p[1], &p[2]);
+        screenToWorld(&q[0], &q[1], &q[2]);
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glTranslatef((q[0] - p[0]) * 15, -(q[1] - p[1]) * 15, (q[2] - p[2]) * 15);
+        glMultMatrixf(meshes[selectedMesh]->t_matrix);
+
+        GLdouble M[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, M);
+        for (int i = 0; i < 16; ++i)
+            meshes[selectedMesh]->t_matrix[i] = M[i];
+
+        glPopMatrix();
+
+
+    } else if (_mouseLeft && !_rotate) {
         double ax, ay, az;
         double bx, by, bz;
         double angle;
@@ -477,19 +571,19 @@ void mouseMoveEvent(int x, int y)
         ax = dy;
         ay = dx;
         az = 0.0;
-        angle = vlen(ax, ay, az) / (double) (viewport[2] + 1) * 180.0;
+        angle = sqrt(ax*ax + ay*ay + az*az) / (double) (viewport[2] + 1) * 180.0;
 
         /* Use inverse matrix to determine local axis of rotation */
 
-        bx = _matrixI[0] * ax + _matrixI[4] * ay + _matrixI[8] * az;
-        by = _matrixI[1] * ax + _matrixI[5] * ay + _matrixI[9] * az;
+        bx = _matrixI[0] * ax + _matrixI[4] * ay + _matrixI[8]  * az;
+        by = _matrixI[1] * ax + _matrixI[5] * ay + _matrixI[9]  * az;
         bz = _matrixI[2] * ax + _matrixI[6] * ay + _matrixI[10] * az;
 
         glRotatef(angle, bx, by, bz);
 
         changed = true;
-    } else if (_mouseRight) {
-        double px, py, pz;
+    } else if (_mouseRight && !_translate) {
+        float px, py, pz;
 
         pos(&px, &py, &pz, x, y, viewport);
 
@@ -504,8 +598,8 @@ void mouseMoveEvent(int x, int y)
         changed = true;
     }
 
-    _mouseX = x;
-    _mouseY = y;
+    prev_x = _mouseX = x;
+    prev_y = _mouseY = y;
 
     if (changed) {
         getMatrix();
@@ -513,6 +607,11 @@ void mouseMoveEvent(int x, int y)
     }
    
 }
+
+//void mousePassiveFunc(int x, int y)
+//{
+//    checkHoveringStatus(x, y);
+//}
 
 void display()
 {
@@ -525,8 +624,8 @@ void display()
     glPushMatrix();
 
     for (int i = 0; i < meshes.size(); i++)
-        meshes[i]->glDraw();
-    
+         meshes[i]->glDraw();
+     
     glPopMatrix();
     
     glutSwapBuffers();
@@ -534,9 +633,17 @@ void display()
 
 int main(int argc, char **argv)
 {
-    meshes.push_back(new DefMesh("./model/box.ply"));
-    meshes.push_back(new DefMesh("./model/futuramacota.ply"));
-    //meshes.push_back(new DefMesh("./model/franks.ply"));
+
+    cout << " <<<<<<<<<<< INSTRUCTIONS >>>>>>>>>>>" << endl << endl;
+    cout << " q           -> previous mesh"         << endl        ;
+    cout << " w           -> release all meshes"    << endl        ;
+    cout << " e           -> next mesh"             << endl        ;
+    cout << " left click  -> rotate mesh/world"     << endl        ;
+    cout << " right click -> translate mesh/world"  << endl        ;
+    cout << " scroll      -> zoom in/our"           << endl << endl;
+
+    meshes.push_back(new DefMesh("./model/pot.ply"));
+    meshes.push_back(new DefMesh("./model/pot2.ply"));
 
     glutInit(&argc, argv);
     //Print contex info
@@ -551,7 +658,7 @@ int main(int argc, char **argv)
     glutMouseFunc(mouseEvent);
     glutMotionFunc(mouseMoveEvent);
     glutKeyboardFunc(handleKeyPress);
-    glutPassiveMotionFunc(mousePassiveFunc);
+    //glutPassiveMotionFunc(mousePassiveFunc);
     
     init();
     glutMainLoop();

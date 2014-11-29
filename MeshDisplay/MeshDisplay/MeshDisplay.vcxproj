@@ -85,12 +85,14 @@
     <ClCompile Include="glm.cpp" />
     <ClCompile Include="glMain.cpp" />
     <ClCompile Include="plyModel.cpp" />
+    <ClCompile Include="simpleMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bbox.h" />
     <ClInclude Include="defMesh.h" />
     <ClInclude Include="glm.h" />
     <ClInclude Include="plyModel.h" />
+    <ClInclude Include="simpleMath.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ToDo.txt" />

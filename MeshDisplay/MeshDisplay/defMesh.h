@@ -26,9 +26,7 @@ public:
         delete pmodel; 
     }
     
-    void translate(float dx, float dy, float dz);
-    void rotate(float ax, float ay, float az, float ang);
-
+    void updateMesh();
     void glDraw();
 
 };

@@ -6,6 +6,7 @@ DefMesh::DefMesh(std::string filename) : status(IDLE)
     pmodel = new PLYmodel;
     pmodel->Load((char*)filename.c_str());
     bbox.makeBBox(pmodel);
+    loadIdentity(t_matrix);
     
     //pmodel = NULL;
     //if (!pmodel) {	/* load up the model */
@@ -47,30 +48,77 @@ DefMesh::DefMesh(std::string filename) : status(IDLE)
    
 }
 
+void DefMesh::updateMesh(){
+
+    for (int i = 0; i < pmodel->TotalConnectedPoints; i++){
+
+        // Simplify getting coordinate of vertex
+        // Note: vertices start at i = 1
+        int x = (i + 1) * 3;
+        int y = (i + 1) * 3 + 1;
+        int z = (i + 1) * 3 + 2;
+
+        // Zero out current vertex
+        pmodel->Vertex_Buffer[x] = 0.0;
+        pmodel->Vertex_Buffer[y] = 0.0;
+        pmodel->Vertex_Buffer[z] = 0.0;
+        float initPos[3] = { pmodel->Init_Vertex_Buffer[x], pmodel->Init_Vertex_Buffer[y], pmodel->Init_Vertex_Buffer[z] };
+
+        // Update vertex positions
+        float newPos[3];
+        multv(t_matrix, initPos, newPos);
+        pmodel->Vertex_Buffer[x] += newPos[0];
+        pmodel->Vertex_Buffer[y] += newPos[1];
+        pmodel->Vertex_Buffer[z] += newPos[2];
+
+    }
+}
+
 void DefMesh::glDraw()
 {
-    glColor3f(0.5, 0.5, 0.5);
-    pmodel->Draw(status);
-    glColor3f(0.5, 0.0, 0.0);
-    //bbox.draw();
     
-    //switch(type){
-    //case 0:
-    //    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); break;
-    //case 1:
-    //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break;
-    //case 2:
-    //    glPolygonMode(GL_POINT, GL_FILL); break;
-    //}
+    switch (status){
+    case IDLE:
+        glColor3f(0.5, 0.5, 0.5);
+        break;
+    case HOVERED:
+        glColor3f(0.5, 0.6, 0.5);
+        break;
+    case SELECTED:
+        glColor3f(0.0, 0.5, 0.0);
+        break;
+    }
+
+    // DRAW MESH
+    glPushMatrix();
+    glMultMatrixf(t_matrix);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, pmodel->Faces_Triangles);
+    glNormalPointer(GL_FLOAT, 0, pmodel->Normals);
+    glDrawArrays(GL_TRIANGLES, 0, pmodel->TotalConnectedTriangles);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glColor3f(0.5, 0.0, 0.0);
+
+    glPopMatrix();
+
+    
+    // DRAW POINTS
     //
-    //glColor3f(0.5, 0.5, 0.5);
-    //mode = GLM_NONE;
-    //mode = mode | GLM_SMOOTH;
-    //glPushMatrix();
-    //glScalef(2,2,2);
-    //glTranslatef(-0.5, -0.5, -0.5);
-    //glmDraw(pmodel, mode);
-    //glPopMatrix();
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glPointSize(0.01f);//set point size to 10 pixels
+    //glBegin(GL_POINTS); //starts drawing of points
+    //for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
+    //{
+    //    glVertex3f(pmodel->Vertex_Buffer[0 + (i * 3)], 
+    //               pmodel->Vertex_Buffer[1 + (i * 3)], 
+    //               pmodel->Vertex_Buffer[2 + (i * 3)]);
+
+    //    glNormal3f(pmodel->Normals[0 + (i * 3)],
+    //               pmodel->Normals[1 + (i * 3)],
+    //               pmodel->Normals[2 + (i * 3)]);
+    //}
+    //glEnd();//end drawing of points
 
 }

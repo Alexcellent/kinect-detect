@@ -40,13 +40,13 @@ public:
     }
     
     int PLYmodel::Load(char *filename);
-    void PLYmodel::Draw(Status clickStatus);
     float* PLYmodel::calculateNormal(float *coord1, float *coord2, float *coord3);
     
 
     float* Faces_Triangles;
     float* Faces_Quads;
     float* Vertex_Buffer;
+    float* Init_Vertex_Buffer;
     float* Normals;
 
     int TotalConnectedTriangles;
