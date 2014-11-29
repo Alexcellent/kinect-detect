@@ -124,6 +124,18 @@ void multv(float *m, float *v, float *r)
     memcpy(r, t, sizeof(float)*3);
 }
 
+void multp(float *m, float *p, float *r)
+{
+    float t[4];
+
+    t[0] = m[0] * p[0] + m[4] * p[1] + m[8]  * p[2] + m[12];
+    t[1] = m[1] * p[0] + m[5] * p[1] + m[9]  * p[2] + m[13];
+    t[2] = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];
+    t[3] = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
+
+    memcpy(r, t, sizeof(float)* 4);
+}
+
 void scalar(float s,float* m, float *r)
 {
     for(int i=0; i<16; ++i)

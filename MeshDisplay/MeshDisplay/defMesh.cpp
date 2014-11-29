@@ -74,51 +74,127 @@ void DefMesh::updateMesh(){
     }
 }
 
-void DefMesh::glDraw()
+void DefMesh::glDraw(int meshModel)
 {
+    float r, g, b;
     
     switch (status){
     case IDLE:
-        glColor3f(0.5, 0.5, 0.5);
-        break;
-    case HOVERED:
-        glColor3f(0.5, 0.6, 0.5);
+        r = 0.5; g = 0.5; b = 0.5;
         break;
     case SELECTED:
-        glColor3f(0.0, 0.5, 0.0);
+        r = 0.0; g = 0.5; b = 0.0;
         break;
     }
 
-    // DRAW MESH
-    glPushMatrix();
-    glMultMatrixf(t_matrix);
+    switch (meshModel){
+    case 0:
+        // DRAW MESH
+        glPushMatrix();
+        glMultMatrixf(t_matrix);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, pmodel->Faces_Triangles);
-    glNormalPointer(GL_FLOAT, 0, pmodel->Normals);
-    glDrawArrays(GL_TRIANGLES, 0, pmodel->TotalConnectedTriangles);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glColor3f(0.5, 0.0, 0.0);
+        glColor3f(r, g, b);
 
-    glPopMatrix();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glVertexPointer(3, GL_FLOAT, 0, pmodel->Faces_Triangles);
+        glNormalPointer(GL_FLOAT, 0, pmodel->Normals);
+        glDrawArrays(GL_TRIANGLES, 0, pmodel->TotalConnectedTriangles);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
 
-    
-    // DRAW POINTS
-    //
-    //glPointSize(0.01f);//set point size to 10 pixels
-    //glBegin(GL_POINTS); //starts drawing of points
-    //for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
-    //{
-    //    glVertex3f(pmodel->Vertex_Buffer[0 + (i * 3)], 
-    //               pmodel->Vertex_Buffer[1 + (i * 3)], 
-    //               pmodel->Vertex_Buffer[2 + (i * 3)]);
+        glPopMatrix();
+        break;
 
-    //    glNormal3f(pmodel->Normals[0 + (i * 3)],
-    //               pmodel->Normals[1 + (i * 3)],
-    //               pmodel->Normals[2 + (i * 3)]);
-    //}
-    //glEnd();//end drawing of points
+    case 1:
+        // DRAW POINTS W/O DEPTH MAP
+
+        glPushMatrix();
+        glMultMatrixf(t_matrix);
+        glPointSize(0.01f);
+        glBegin(GL_POINTS);
+
+        for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
+        {
+            
+            glColor3f(r, g, b);
+
+            glVertex3f(pmodel->Vertex_Buffer[0 + (i * 3)],
+                       pmodel->Vertex_Buffer[1 + (i * 3)],
+                       pmodel->Vertex_Buffer[2 + (i * 3)]);
+            
+            glNormal3f(pmodel->Normals[0 + (i * 3)],
+                       pmodel->Normals[1 + (i * 3)],
+                       pmodel->Normals[2 + (i * 3)]);
+        }
+
+        glEnd();
+        glPopMatrix();
+        break;
+
+    case 2:
+        // DRAW POINTS WITH DEPTH MAP
+
+        // Get viewport, projection and modelview
+        GLint    viewport[4] = { 0, 0, 1, 1 };
+        GLdouble modelview[16];
+        GLdouble projection[16];
+
+        glGetIntegerv(GL_VIEWPORT,          viewport  );
+        glGetDoublev (GL_MODELVIEW_MATRIX,  modelview );
+        glGetDoublev (GL_PROJECTION_MATRIX, projection);
+
+        // Get camera position in world space
+        GLdouble camPos[3];
+        gluUnProject((viewport[2] - viewport[0]) / 2, (viewport[3] - viewport[1]) / 2, 0.0, 
+                      modelview, projection, viewport, &camPos[0], &camPos[1], &camPos[2]);
+
+        // Get mesh center in world space
+        float mv_mat[16];
+        for (int i = 0; i < 16; i++) mv_mat[i] = modelview[i];
+
+        float meshCenter[3] = { bbox.xCen, bbox.yCen, bbox.zCen };
+        mult(mv_mat, t_matrix, mv_mat);
+        multv(mv_mat, meshCenter, meshCenter);
+
+
+        // Get min/max distance of mesh from camera
+        float min[3] = { (meshCenter[0] - camPos[0]) - bbox.getRadius() * 0.75,
+                         (meshCenter[1] - camPos[1]) - bbox.getRadius() * 0.75,
+                         (meshCenter[2] - camPos[2]) - bbox.getRadius() * 0.75,};
+        float max[3] = { (meshCenter[0] - camPos[0]) + bbox.getRadius() * 0.75,
+                         (meshCenter[1] - camPos[1]) + bbox.getRadius() * 0.75,
+                         (meshCenter[2] - camPos[2]) + bbox.getRadius() * 0.75};
+
+        glPushMatrix();
+        glMultMatrixf(t_matrix);
+        glPointSize(0.01f);
+        glBegin(GL_POINTS);
+        for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
+        {
+
+            float p[3] = { pmodel->Vertex_Buffer[0 + (i * 3)],
+                           pmodel->Vertex_Buffer[1 + (i * 3)],
+                           pmodel->Vertex_Buffer[2 + (i * 3)] };
+
+            multv(mv_mat, p, p);
+            float intensity = (p[2] - camPos[2] - min[2]) / (max[2] - min[2]);
+
+            if (status == SELECTED) 
+                glColor3f(intensity, 1.0 - intensity, 0.0);
+            else
+                glColor3f(intensity, 0.0, 1.0 - intensity);
+            
+
+            glVertex3f(pmodel->Vertex_Buffer[0 + (i * 3)],
+                       pmodel->Vertex_Buffer[1 + (i * 3)],
+                       pmodel->Vertex_Buffer[2 + (i * 3)]);
+
+        }
+        glEnd();
+        glPopMatrix();
+        break;
+    }
+
 
 }

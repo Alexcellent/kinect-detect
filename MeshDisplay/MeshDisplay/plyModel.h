@@ -22,7 +22,6 @@
 typedef enum ClickStatus
 {
     IDLE,
-    HOVERED,
     SELECTED
 } Status;
 

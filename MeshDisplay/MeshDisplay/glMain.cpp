@@ -324,43 +324,42 @@ float* getArcballVector(float x, float y)
     return av;
 }
 
-
 // NOT USED //////////////////////////
 void checkHoveringStatus(int x, int y)
 {
-    int hoveredID = -1;
-    float minDistance = FLT_MAX;
-    for (unsigned i = 0; i < meshes.size(); i++)
-    {
-        // Reset status
-        meshes[i]->status = IDLE;
-        
-        // Get screen 'radius' for bbox (max of w/h/d for box)
-        GLdouble center_x = meshes[i]->bbox.xCen, 
-                 center_y = meshes[i]->bbox.yCen,
-                 center_z = meshes[i]->bbox.zCen,
-                 max_x    = meshes[i]->bbox.xMax,
-                 max_y    = meshes[i]->bbox.yMax,
-                 max_z    = meshes[i]->bbox.zMax;
-        worldToScreen(&center_x, &center_y, &center_z);
-        worldToScreen(&max_x, &max_y, &max_z);
+    //int hoveredID = -1;
+    //float minDistance = FLT_MAX;
+    //for (unsigned i = 0; i < meshes.size(); i++)
+    //{
+    //    // Reset status
+    //    meshes[i]->status = IDLE;
+    //    
+    //    // Get screen 'radius' for bbox (max of w/h/d for box)
+    //    GLdouble center_x = meshes[i]->bbox.xCen, 
+    //             center_y = meshes[i]->bbox.yCen,
+    //             center_z = meshes[i]->bbox.zCen,
+    //             max_x    = meshes[i]->bbox.xMax,
+    //             max_y    = meshes[i]->bbox.yMax,
+    //             max_z    = meshes[i]->bbox.zMax;
+    //    worldToScreen(&center_x, &center_y, &center_z);
+    //    worldToScreen(&max_x, &max_y, &max_z);
 
-        float screenRadius = sqrt((max_x - center_x)*(max_x - center_x) + 
-                                  (max_y - center_y)*(max_y - center_y) +
-                                  (max_z - center_z)*(max_z - center_z));
+    //    float screenRadius = sqrt((max_x - center_x)*(max_x - center_x) + 
+    //                              (max_y - center_y)*(max_y - center_y) +
+    //                              (max_z - center_z)*(max_z - center_z));
 
-        // Get distance of mouse from mesh center
-        float distance = sqrt((x - center_x)*(x - center_x) + 
-                              (y - center_y)*(y - center_y));
-        if (distance > screenRadius) continue;
-        if (center_z < minDistance)
-        {
-            minDistance = center_z;
-            hoveredID = i;
-        }
+    //    // Get distance of mouse from mesh center
+    //    float distance = sqrt((x - center_x)*(x - center_x) + 
+    //                          (y - center_y)*(y - center_y));
+    //    if (distance > screenRadius) continue;
+    //    if (center_z < minDistance)
+    //    {
+    //        minDistance = center_z;
+    //        hoveredID = i;
+    //    }
 
-    }
-    if (hoveredID != -1) meshes[hoveredID]->status = HOVERED;
+    //}
+    //if (hoveredID != -1) meshes[hoveredID]->status = HOVERED;
 }
 
 void selectMesh(int i)
@@ -409,7 +408,15 @@ void handleKeyPress(unsigned char key, int x, int y)
         
         selectMesh(selectedMesh);
         break;
-    
+
+    case 'p':
+        meshModel = (meshModel % 2) + 1;
+        break;
+
+    case 'm':
+        meshModel = 0;
+        break;
+
     case  27:
         exit(0);
     }
@@ -624,7 +631,7 @@ void display()
     glPushMatrix();
 
     for (int i = 0; i < meshes.size(); i++)
-         meshes[i]->glDraw();
+         meshes[i]->glDraw(meshModel);
      
     glPopMatrix();
     
@@ -634,14 +641,17 @@ void display()
 int main(int argc, char **argv)
 {
 
-    cout << " <<<<<<<<<<< INSTRUCTIONS >>>>>>>>>>>" << endl << endl;
-    cout << " q           -> previous mesh"         << endl        ;
-    cout << " w           -> release all meshes"    << endl        ;
-    cout << " e           -> next mesh"             << endl        ;
-    cout << " left click  -> rotate mesh/world"     << endl        ;
-    cout << " right click -> translate mesh/world"  << endl        ;
-    cout << " scroll      -> zoom in/our"           << endl << endl;
+    cout << " <<<<<<<<<<< INSTRUCTIONS >>>>>>>>>>>"   << endl << endl;
+    cout << " q           -> previous mesh"           << endl        ;
+    cout << " w           -> release all meshes"      << endl        ;
+    cout << " e           -> next mesh"               << endl        ;
+    cout << " p           -> render next point-style" << endl        ;
+    cout << " m           -> render mesh"             << endl        ;
+    cout << " left click  -> rotate mesh/world"       << endl        ;
+    cout << " right click -> translate mesh/world"    << endl        ;
+    cout << " scroll      -> zoom in/our"             << endl << endl;
 
+    // LOAD MESHES
     meshes.push_back(new DefMesh("./model/pot.ply"));
     meshes.push_back(new DefMesh("./model/pot2.ply"));
 

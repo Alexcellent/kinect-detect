@@ -19,6 +19,7 @@ void trans (float* m, float* v, float* r);
 void mult  (float* m1, float* m2, float* r);
 void mult  (float* m1, float* m2, float* r);
 void multv (float *m, float *v, float *r);
+void multp(float *m, float *p, float *r);
 void scalar(float s, float* m, float *r);
 void add   (float *s, float*m, float *r);
 

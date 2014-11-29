@@ -27,7 +27,7 @@ public:
     }
     
     void updateMesh();
-    void glDraw();
+    void glDraw(int meshModel);
 
 };
 #endif
