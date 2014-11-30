@@ -480,14 +480,16 @@ void mouseMoveEvent(int x, int y)
         glTranslatef(-meshes[selectedMesh]->bbox.xCen,
             -meshes[selectedMesh]->bbox.yCen,
             -meshes[selectedMesh]->bbox.zCen);
-        glMultMatrixf(meshes[selectedMesh]->t_matrix);
-
-
+        //glMultMatrixf(meshes[selectedMesh]->t_matrix);
+        glMultMatrixf(k_matrix);
+        
         GLdouble M[16];
         glGetDoublev(GL_MODELVIEW_MATRIX, M);
         float r[16];
-        for (int i = 0; i < 16; ++i)
-            meshes[selectedMesh]->t_matrix[i] = M[i];
+        for (int i = 0; i < 16; ++i){
+            //meshes[selectedMesh]->t_matrix[i] = M[i];
+            k_matrix[i] = M[i];
+        }
 
         //mult(meshes[selectedMesh]->t_matrix, r, meshes[selectedMesh]->t_matrix);
         glPopMatrix();
@@ -503,15 +505,16 @@ void mouseMoveEvent(int x, int y)
         glPushMatrix();
         glLoadIdentity();
         glTranslatef((q[0] - p[0]) * 15, -(q[1] - p[1]) * 15, (q[2] - p[2]) * 15);
-        glMultMatrixf(meshes[selectedMesh]->t_matrix);
+        //glMultMatrixf(meshes[selectedMesh]->t_matrix);
+        glMultMatrixf(k_matrix);
 
         GLdouble M[16];
         glGetDoublev(GL_MODELVIEW_MATRIX, M);
-        for (int i = 0; i < 16; ++i)
-            meshes[selectedMesh]->t_matrix[i] = M[i];
-
+        for (int i = 0; i < 16; ++i){
+            //meshes[selectedMesh]->t_matrix[i] = M[i];
+            k_matrix[i] = M[i];
+        }
         glPopMatrix();
-
 
     }
     else if (_mouseLeft && !_rotate) {
@@ -578,10 +581,10 @@ void display()
     for (int i = 0; i < meshes.size(); i++)
         meshes[i]->glDraw(meshModel);
 
+    glPopMatrix();
+
     if (isKinected)
         drawKinectData();
-
-    glPopMatrix();
 
     glutSwapBuffers();
 }

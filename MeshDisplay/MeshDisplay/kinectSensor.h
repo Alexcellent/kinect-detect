@@ -14,6 +14,8 @@
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
 
+#include "simpleMath.h"
+
 const int width = 640;
 const int height = 480;
 
@@ -36,9 +38,12 @@ int k_frame = 0;
 int k_refresh = 30;
 
 // Transformation variables
-float t_matrix[16];
+float k_matrix[16];
 
 bool initKinect() {
+
+    loadIdentity(k_matrix);
+
     // Get a working kinect sensor
     int numSensors;
     if (NuiGetSensorCount(&numSensors) < 0 || numSensors < 1) return false;
@@ -129,10 +134,16 @@ void getKinectData() {
 }
 
 void drawKinectData() {
-    // Refresh atfixed frame rate for efficiency
+    // Refresh at fixed frame rate for efficiency
     k_frame = (k_frame + 1) % k_refresh;
     if (k_frame == 0)
         getKinectData();
+
+    glPushMatrix();
+    glMultMatrixf(k_matrix);
+
+    glColor3f(0.5, 0, 0);
+    glutSolidSphere(0.01, 30, 30);
 
     glBegin(GL_POINTS);
     for (int i = 0; i < width*height; ++i) {
@@ -140,4 +151,6 @@ void drawKinectData() {
         glVertex3f(vertexarray[i * 3], vertexarray[i * 3 + 1], vertexarray[i * 3 + 2]);
     }
     glEnd();
+
+    glPopMatrix();
 }
