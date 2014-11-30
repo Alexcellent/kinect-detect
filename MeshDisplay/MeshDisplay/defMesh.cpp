@@ -156,15 +156,15 @@ void DefMesh::glDraw(int meshModel)
         float meshCenter[3] = { bbox.xCen, bbox.yCen, bbox.zCen };
         mult(mv_mat, t_matrix, mv_mat);
         multv(mv_mat, meshCenter, meshCenter);
+        
 
+        // Get min/max distance of mesh from camera or origin
+        float min[3], max[3];
+        for (int i = 0; i < 3; i++) {
+            min[i] = meshCenter[i] - bbox.getRadius() * 0.75;
+            max[i] = meshCenter[i] + bbox.getRadius() * 0.75;
+        }
 
-        // Get min/max distance of mesh from camera
-        float min[3] = { (meshCenter[0] - camPos[0]) - bbox.getRadius() * 0.75,
-                         (meshCenter[1] - camPos[1]) - bbox.getRadius() * 0.75,
-                         (meshCenter[2] - camPos[2]) - bbox.getRadius() * 0.75,};
-        float max[3] = { (meshCenter[0] - camPos[0]) + bbox.getRadius() * 0.75,
-                         (meshCenter[1] - camPos[1]) + bbox.getRadius() * 0.75,
-                         (meshCenter[2] - camPos[2]) + bbox.getRadius() * 0.75};
 
         glPushMatrix();
         glMultMatrixf(t_matrix);
@@ -178,7 +178,7 @@ void DefMesh::glDraw(int meshModel)
                            pmodel->Vertex_Buffer[2 + (i * 3)] };
 
             multv(mv_mat, p, p);
-            float intensity = (p[2] - camPos[2] - min[2]) / (max[2] - min[2]);
+            float intensity = (p[2] - min[2]) / (max[2] - min[2]);
 
             if (status == SELECTED) 
                 glColor3f(intensity, 1.0 - intensity, 0.0);
