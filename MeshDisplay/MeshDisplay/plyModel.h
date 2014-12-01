@@ -6,6 +6,8 @@
 *
 * Just the class for loading PLY files.
 *
+* Saving from: http://choorucode.com/2011/08/18/output-3d-mesh-to-ply-file/
+*
 */
 
 #ifndef PLYMODEL_H
@@ -18,6 +20,8 @@
 #include <GL/glu.h>
 #include <cmath>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 typedef enum ClickStatus
 {

@@ -1,6 +1,5 @@
 
 #include "plyModel.h"
-#include <iostream>
 
 float* PLYmodel::calculateNormal(float *coord1, float *coord2, float *coord3)
 {

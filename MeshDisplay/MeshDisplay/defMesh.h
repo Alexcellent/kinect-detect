@@ -5,6 +5,7 @@
 #include <string>
 #include <limits>
 #include <iostream>
+#include <vector>
 
 // TODO:
 // - Add center of mass
@@ -25,6 +26,8 @@ public:
     { 
         delete pmodel; 
     }
+
+    void Save(std::string filename);
     
     //void updateMesh();
     void glDraw(int meshModel);

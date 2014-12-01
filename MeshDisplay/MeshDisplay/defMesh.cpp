@@ -74,6 +74,80 @@ DefMesh::DefMesh(std::string filename) : status(IDLE)
 //    }
 //}
 
+void DefMesh::Save(std::string filename)
+{
+    std::ofstream outFile(filename);
+    if (!outFile)
+    {
+        std::cerr << "Error opening output file: " << filename << "!" << std::endl;
+        exit(1);
+    }
+
+    std::cout << "Saving Mesh! Please hold...\n";
+
+    ////
+    // Output TRANSFORMED mesh to file
+    ////
+    std::vector<float> transformedVerts;
+    for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
+    {
+        float p[3] = { pmodel->Vertex_Buffer[0 + (i * 3)],
+                       pmodel->Vertex_Buffer[1 + (i * 3)],
+                       pmodel->Vertex_Buffer[2 + (i * 3)] };
+        multv(t_matrix, p, p);
+        
+        transformedVerts.push_back(p[0]);
+        transformedVerts.push_back(p[1]);
+        transformedVerts.push_back(p[2]);
+
+    }
+
+    ////
+    // Header
+    ////
+
+    outFile << "ply" << std::endl;
+    outFile << "format ascii 1.0" << std::endl;
+    outFile << "element vertex "  << pmodel->TotalConnectedPoints << std::endl;
+    outFile << "property float x" << std::endl;
+    outFile << "property float y" << std::endl;
+    outFile << "property float z" << std::endl;
+    outFile << "element face "    << pmodel->TotalConnectedTriangles << std::endl;
+    outFile << "property list uchar int vertex_index" << std::endl;
+    outFile << "end_header" << std::endl;
+
+    ////
+    // Points
+    ////
+
+    for (int i = 0; i < pmodel->TotalConnectedPoints; i++)
+    {
+        outFile << transformedVerts[0 + (i * 3)] << " "
+                << transformedVerts[1 + (i * 3)] << " "
+                << transformedVerts[2 + (i * 3)] << "\n";
+
+    }
+
+    ////
+    // Triangles
+    ////
+
+    for (int i = 0; i < pmodel->TotalConnectedTriangles; i++)
+    {
+
+        outFile << "3 ";
+
+        outFile << pmodel->Faces_Triangles[0 + (i * 3)] << " "
+                << pmodel->Faces_Triangles[1 + (i * 3)] << " "
+                << pmodel->Faces_Triangles[2 + (i * 3)] << std::endl;
+
+        outFile << std::endl;
+    }
+    std::cout << "Saving complete!\n";
+
+    return;
+}
+
 void DefMesh::glDraw(int meshModel)
 {
     float r, g, b;

@@ -359,6 +359,17 @@ void handleKeyPress(unsigned char key, int x, int y)
         meshModel = 0;
         break;
 
+    case 'l':
+        positionKinect();
+        break;
+
+    case 's':
+        if (selectedMesh > -1)
+            meshes[selectedMesh]->Save("./model/m_save.ply");
+        if (isKinected)
+            saveKinectData("./model/k_save.ply");
+        break;
+
     case  27:
         exit(0);
     }
@@ -483,6 +494,7 @@ void mouseMoveEvent(int x, int y)
         //glMultMatrixf(meshes[selectedMesh]->t_matrix);
         glMultMatrixf(k_matrix);
         
+        
         GLdouble M[16];
         glGetDoublev(GL_MODELVIEW_MATRIX, M);
         float r[16];
@@ -490,8 +502,6 @@ void mouseMoveEvent(int x, int y)
             //meshes[selectedMesh]->t_matrix[i] = M[i];
             k_matrix[i] = M[i];
         }
-
-        //mult(meshes[selectedMesh]->t_matrix, r, meshes[selectedMesh]->t_matrix);
         glPopMatrix();
 
     }
@@ -598,12 +608,14 @@ int main(int argc, char **argv)
     cout << " e           -> next mesh" << endl;
     cout << " p           -> render next point-style" << endl;
     cout << " m           -> render mesh" << endl;
+    cout << " s           -> save mesh and kinect" << endl;
+    cout << " l           -> localize kinect" << endl;
     cout << " left click  -> rotate mesh/world" << endl;
     cout << " right click -> translate mesh/world" << endl;
     cout << " scroll      -> zoom in/our" << endl << endl;
 
     // LOAD MESHES
-    meshes.push_back(new DefMesh("./model/bigRoom.ply"));
+    meshes.push_back(new DefMesh("./model/alexRoom.ply"));
 
     // INIT KINECT
     isKinected = initKinect();

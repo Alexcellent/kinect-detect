@@ -66,6 +66,14 @@ bool initKinect() {
     return sensor;
 }
 
+void positionKinect()
+{
+    float newPos[16] = { 0.990921, 0.0626205, -0.118975, -0.444162, -0.0623196, 0.998037, 0.00625139, 0.0235913, 0.119133, 0.0012198, 0.992878, 0.042913, 0, 0, 0, 1, };
+    for (int i = 0; i < 16; i++){
+        k_matrix[i] = newPos[i];
+    }
+}
+
 void getDepthData(GLubyte* dest) {
     float* fdest = (float*)dest;
     long* depth2rgb = (long*)depthToRgbMap;
@@ -133,6 +141,71 @@ void getKinectData() {
     getRgbData((GLubyte*)colorarray);
 }
 
+void saveKinectData(std::string filename)
+{
+    std::ofstream outFile(filename);
+    if (!outFile)
+    {
+        std::cerr << "Error opening output file: " << filename << "!" << std::endl;
+        exit(1);
+    }
+
+    std::cout << "Saving Kinect View! Please hold...\n";
+
+
+    getDepthData((GLubyte*)vertexarray);
+
+    // Total Points
+    int totalPoints = width*height;
+
+    ////
+    // Output TRANSFORMED mesh to file
+    ////
+    std::vector<float> transformedVerts;
+    for (int i = 0; i < totalPoints; i++)
+    {
+        float p[3] = { vertexarray[0 + (i * 3)],
+                       vertexarray[1 + (i * 3)],
+                       vertexarray[2 + (i * 3)] };
+        multv(k_matrix, p, p);
+
+        transformedVerts.push_back(p[0]);
+        transformedVerts.push_back(p[1]);
+        transformedVerts.push_back(p[2]);
+
+    }
+
+    ////
+    // Header
+    ////
+
+    outFile << "ply" << std::endl;
+    outFile << "format ascii 1.0" << std::endl;
+    outFile << "element vertex " << totalPoints << std::endl;
+    outFile << "property float x" << std::endl;
+    outFile << "property float y" << std::endl;
+    outFile << "property float z" << std::endl;
+    outFile << "element face " << 0 << std::endl;
+    outFile << "property list uchar int vertex_index" << std::endl;
+    outFile << "end_header" << std::endl;
+
+    ////
+    // Points
+    ////
+
+    for (int i = 0; i < totalPoints; i++)
+    {
+        outFile << transformedVerts[0 + (i * 3)] << " "
+                << transformedVerts[1 + (i * 3)] << " "
+                << transformedVerts[2 + (i * 3)] << std::endl;
+
+    }
+
+    std::cout << "Saving complete!\n";
+
+
+}
+
 void drawKinectData() {
     // Refresh at fixed frame rate for efficiency
     k_frame = (k_frame + 1) % k_refresh;
@@ -142,8 +215,11 @@ void drawKinectData() {
     glPushMatrix();
     glMultMatrixf(k_matrix);
 
+    // Viewing cone represents kinect
     glColor3f(0.5, 0, 0);
-    glutSolidSphere(0.01, 30, 30);
+    glRotatef(180, 0, 1, 0);
+    glutSolidCone(0.25, 0.5, 30, 50);
+    glRotatef(-180, 0, 1, 0);
 
     glBegin(GL_POINTS);
     for (int i = 0; i < width*height; ++i) {
